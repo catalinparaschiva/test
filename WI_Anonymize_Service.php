@@ -85,11 +85,12 @@ class WI_Anonymize_Service
                ' user_' . $this->user_id .
                ' ' . escapeshellarg($this->email) .
                ' 0 ' . escapeshellarg($this->notify_email) .
-               ' 2>&1 &';
+               ' >> /var/www/html/clients/wlm/logs/anonymize_service/anonymize_account.log 2>&1 &';
 
         exec($cmd, $output, $return_val);
 
-        return $this->processAnonymizationResult($output, $return_val);
+        // return $this->processAnonymizationResult($output, $return_val);
+        return $this->processAnonymizationResult();
     }
 
     private function anonymizeList()
@@ -102,33 +103,33 @@ class WI_Anonymize_Service
                ' list_id_' . $this->list_id .
                ' ' . escapeshellarg($this->email) .
                ' 0 ' . escapeshellarg($this->notify_email) .
-               ' 2>&1 &';
+               ' >> /var/www/html/clients/wlm/logs/anonymize_service/anonymize_list.log 2>&1 &';
 
         exec($cmd, $output, $return_val);
 
-        return $this->processAnonymizationResult($output, $return_val);
+        // return $this->processAnonymizationResult($output, $return_val);
+        return $this->processAnonymizationResult();
     }
 
-    private function processAnonymizationResult($output, $return_val)
+    
+    private function processAnonymizationResult()
     {
-        if (!empty($output[0])) {
-            return array(
-                'code' => 1,
-                'message' => 'User ' . $this->email . ' anonymized successfully',
-                'method' => $this->method,
-                'email' => $this->email,
-            );
-        }
+        return array(
+            'code' => 1,
+            'message' => 'The anonymization request for ' . $this->email . ' has been submitted for processing. The result will be sent to the provided email address.',
+            'method' => $this->method,
+            'email' => $this->email,
+        );
 
         throw new Exception('Anonymization failed: email not found or access denied');
     }
 
     public function logOperation($status, $message)
     {
-        $log_dir = dirname(__FILE__) . '/../logs/anonymize_service';
+        $log_dir = dirname(__FILE__) . '/../../../logs/anonymize_service/' . $this->list_id;
 
         if (!is_dir($log_dir)) {
-            @mkdir($log_dir, 0755, true);
+            @mkdir($log_dir, 0777, true);
         }
 
         $log_file = $log_dir . '/' . date('Y-m-d') . '.log';
